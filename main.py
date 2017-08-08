@@ -26,6 +26,36 @@ def load_email(path):
     return message
 
 
+def cleanup(messages):
+    # remove html tags
+    html_tags = '<[^>]*>'
+    messages = [re.sub(html_tags, "", content) for content in messages]
+
+    # remove new line
+    messages = [re.sub('\\n', " ", content) for content in messages]
+
+    # remove tabs
+    messages = [re.sub('\\t', " ", content) for content in messages]
+
+    # remove numbers, commas, dots, etc.
+    messages = [re.sub("[^a-zA-Z]", " ", content) for content in messages]
+
+    # remove emessagecess whitespaces
+    messages = [re.sub("\s+", " ", content) for content in messages]
+
+    # remove nbsp
+    messages = [re.sub('nbsp', '', content) for content in messages]
+
+    # remove empty strings
+    messages = [message.split(' ') for message in messages]
+    messages = [[word for word in words if word] for words in messages]
+
+    # remove empty messages
+    messages = [message for message in messages if message]
+
+    return messages
+
+
 for dir in dirs:
     new_files = os.listdir(os.path.join(DATA_PATH, dir))
     for new_file in new_files:
@@ -36,18 +66,8 @@ for dir in dirs:
         elif 'spam' in dir:
             spam_messages.append(message)
 
+X_spam = cleanup(spam_messages)
+X_ham = cleanup(ham_messages)
+
 y = np.concatenate([np.zeros(len(ham_messages)), np.ones(len(spam_messages))])
 X = spam_messages + ham_messages
-
-# remove html tags
-html_tags = '<[^>]*>'
-X = [re.sub(html_tags, "", content) for content in X]
-
-# remove new line
-X = [re.sub('\\n', " ", content) for content in X]
-
-# remove tabs
-X = [re.sub('\\t', " ", content) for content in X]
-
-# remove numbers, commas, dots, etc.
-X = [re.sub("[^a-zA-Z]", " ", content) for content in X]
